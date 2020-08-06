@@ -2,6 +2,12 @@
 
 Framer Motion adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.3.1] Unreleased
+
+### Added
+
+-   Added `_shouldAnimate` to `AnimateSharedLayout` and `_shouldAnimateLayout` to `motion`. These are internal props intended for Framer use.
+
 ## [2.3.0] 2020-07-28
 
 ### Added

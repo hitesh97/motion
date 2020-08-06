@@ -6,6 +6,7 @@ import { isTransformProp } from "../../render/dom/utils/transform"
 import { elementDragControls } from "../../gestures/drag/VisualElementDragControls"
 import { motionValue } from "../../value"
 import { Transition } from "../../types"
+import { SharedLayoutTreeConfig } from "components/SharedLayoutTree"
 
 export interface Snapshot {
     isDragging?: boolean
@@ -117,15 +118,15 @@ export class LayoutStack {
     // Track whether we've ever had a child
     hasChildren: boolean = false
 
-    add(child: HTMLVisualElement) {
-        const { layoutOrder } = child.config
+    add(child: HTMLVisualElement, treeConfig?: SharedLayoutTreeConfig) {
+        const { layoutOrder } = treeConfig || {}
 
         if (layoutOrder === undefined) {
             this.order.push(child)
         } else {
             let index = this.order.findIndex(
                 stackChild =>
-                    layoutOrder <= (stackChild.config.layoutOrder || 0)
+                    layoutOrder <= (stackChild.config._layoutOrder || 0)
             )
 
             if (index === -1) {
@@ -137,6 +138,11 @@ export class LayoutStack {
 
             this.order.splice(index, 0, child)
         }
+
+        child.updateConfig({
+            ...child.config,
+            _layoutOrder: layoutOrder,
+        })
 
         /**
          *
@@ -211,16 +217,17 @@ export class LayoutStack {
     }
 
     shouldStackAnimate() {
-        return true
-        // return this.lead && this.lead?.isPresent
-        //     ? this.lead?.props?._shouldAnimate === true
-        //     : this.follow && this.follow?.props._shouldAnimate === true
+        if (this.lead && this.lead.isPresent) {
+            if (this.follow) this.follow.config._prepareShouldAnimateLayout?.()
+            return this.lead.config._shouldAnimateLayout?.()
+        }
+        return this.follow && !!this.follow?.config._shouldAnimateLayout?.()
     }
 
     getFollowOrigin(): AxisBox2D | undefined {
         // This shouldAnimate check is quite specifically a fix for the optimisation made in Framer
         // where components are kept in the tree ready to be re-used
-        return this.follow // && this.follow.shouldAnimate
+        return this.follow
             ? this.follow.prevViewportBox
             : this.snapshot?.boundingBox
     }

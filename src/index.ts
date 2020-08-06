@@ -74,6 +74,7 @@ export {
 } from "./motion/context/MotionConfigContext"
 export { MotionContext } from "./motion/context/MotionContext"
 export { PresenceContext } from "./components/AnimatePresence/PresenceContext"
+export { SharedLayoutTree } from "./components/SharedLayoutTree"
 
 /**
  * Types

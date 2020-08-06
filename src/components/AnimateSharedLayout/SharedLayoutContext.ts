@@ -1,6 +1,7 @@
 import { createContext } from "react"
 import { HTMLVisualElement } from "../../render/dom/HTMLVisualElement"
 import { Presence } from "./types"
+import { SharedLayoutTreeConfig } from "../SharedLayoutTree"
 
 /**
  * Handlers for batching sync layout lifecycles. We batches these processes to cut
@@ -23,9 +24,12 @@ export interface SyncLayoutBatcher {
  * Extra API methods available to children if they're a descendant of AnimateSharedLayout
  */
 export interface SharedLayoutSyncMethods extends SyncLayoutBatcher {
-    syncUpdate: (force?: boolean) => void
+    syncUpdate: () => void
     forceUpdate: () => void
-    register: (child: HTMLVisualElement) => void
+    register: (
+        child: HTMLVisualElement,
+        config?: SharedLayoutTreeConfig
+    ) => void
     remove: (child: HTMLVisualElement) => void
 }
 

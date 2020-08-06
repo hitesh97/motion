@@ -31,7 +31,7 @@ export interface MotionFeature {
 }
 
 export type LoadMotionFeatures<P = {}> = (
-    visualElenent: VisualElement,
+    visualElement: VisualElement,
     props: P & MotionProps,
     context: MotionContextProps,
     parentContext: MotionContextProps,

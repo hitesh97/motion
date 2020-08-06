@@ -9,6 +9,7 @@ import {
     SyncLayoutLifecycles,
     SharedLayoutContext,
 } from "./SharedLayoutContext"
+import { SharedLayoutTreeConfig } from "components/SharedLayoutTree"
 
 /**
  * @public
@@ -48,14 +49,14 @@ export class AnimateSharedLayout extends React.Component<SharedLayoutProps> {
      */
     syncContext: SharedLayoutSyncMethods = {
         ...createBatcher(),
-        syncUpdate: force => this.scheduleUpdate(force),
+        syncUpdate: () => this.scheduleUpdate(),
         forceUpdate: () => {
             // By copying syncContext to itself, when this component re-renders it'll also re-render
             // all children subscribed to the SharedLayout context.
             this.syncContext = { ...this.syncContext }
             this.scheduleUpdate(true)
         },
-        register: child => this.addChild(child),
+        register: (child, config) => this.addChild(child, config),
         remove: child => this.removeChild(child),
     }
 
@@ -74,12 +75,14 @@ export class AnimateSharedLayout extends React.Component<SharedLayoutProps> {
     }
 
     startLayoutAnimation() {
+        const { type, _shouldAnimate } = this.props
+
+        if (_shouldAnimate === false) return
+
         /**
          * Reset update and render scheduled status
          */
         this.renderScheduled = this.updateScheduled = false
-
-        const { type } = this.props
 
         /**
          * Update presence metadata based on the latest AnimatePresence status.
@@ -117,7 +120,6 @@ export class AnimateSharedLayout extends React.Component<SharedLayoutProps> {
             measureLayout: child => child.measureLayout(),
             layoutReady: child => {
                 const { layoutId } = child
-
                 child.layoutReady(
                     createAnimation(child, this.getStack(layoutId))
                 )
@@ -145,7 +147,10 @@ export class AnimateSharedLayout extends React.Component<SharedLayoutProps> {
     }
 
     scheduleUpdate(force = false) {
-        if (!(force || !this.updateScheduled)) return
+        const { _shouldAnimate } = this.props
+        if (!(force || !this.updateScheduled) || _shouldAnimate === false) {
+            return
+        }
 
         /**
          * Flag we've scheduled an update
@@ -173,9 +178,9 @@ export class AnimateSharedLayout extends React.Component<SharedLayoutProps> {
         }
     }
 
-    addChild(child: HTMLVisualElement) {
+    addChild(child: HTMLVisualElement, config?: SharedLayoutTreeConfig) {
         this.children.add(child)
-        this.addToStack(child)
+        this.addToStack(child, config)
 
         child.presence = this.hasMounted ? Presence.Entering : Presence.Present
     }
@@ -186,9 +191,9 @@ export class AnimateSharedLayout extends React.Component<SharedLayoutProps> {
         this.removeFromStack(child)
     }
 
-    addToStack(child: HTMLVisualElement) {
+    addToStack(child: HTMLVisualElement, treeConfig?: SharedLayoutTreeConfig) {
         const stack = this.getStack(child.layoutId)
-        stack?.add(child)
+        stack?.add(child, treeConfig)
     }
 
     removeFromStack(child: HTMLVisualElement) {
