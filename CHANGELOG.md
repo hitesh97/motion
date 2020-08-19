@@ -2,6 +2,12 @@
 
 Framer Motion adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.6.1] Unreleased
+
+### Added
+
+-   Scale correction for `borderRadius` and `boxShadow` found in `style`.
+
 ## [2.6.0] 2020-08-24
 
 ### Fixed
